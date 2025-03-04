@@ -1,0 +1,63 @@
+@page "/GetProduct"
+@using Radzen
+@using Radzen.Blazor
+@inject HttpClient http
+@inject NavigationManager NavigationManager
+
+<RadzenDataList Data="@products" TItem="Product">
+ <Template Context="product">
+    <RadzenCard>
+        <RadzenRow>
+
+            <RadzenColumn>
+                <RadzenImage Path="@($"{baseUrl}{product.ImageURL}")" Style="width: 5rem;"></RadzenImage>
+            </RadzenColumn>
+
+            <RadzenColumn>
+                <RadzenRow>
+
+                    <RadzenColumn>
+                            <RadzenText>@product.Name</RadzenText>
+                            <RadzenText>@product.Description</RadzenText>
+                    </RadzenColumn>
+
+                    <RadzenColumn>
+                            <RadzenText>موجودی</RadzenText>
+                            <RadzenText>@product.Stock</RadzenText>
+                    </RadzenColumn>
+
+                    <RadzenColumn >
+                            <RadzenBadge Variant="Variant.Flat"  BadgeStyle="BadgeStyle.Secondary" Shade="Shade.Dark" Style="font-size:24px" Text=@($"{String.Format(new System.Globalization.CultureInfo("en-US"), "{0:C}", product.Price)}")/>
+                    </RadzenColumn>
+
+                </RadzenRow>
+            </RadzenColumn>
+
+            <RadzenColumn>
+                <RadzenButton Click="@(()=>GetProductById(product.Id))" Text="خرید"></RadzenButton>
+            </RadzenColumn>
+
+        </RadzenRow>
+    </RadzenCard>
+</Template> 
+
+</RadzenDataList>
+
+
+@code
+{
+    List<Product> products=new List<Product>();
+     private string baseUrl{get;set;}
+    protected override async Task OnInitializedAsync()
+    {
+        baseUrl = NavigationManager.BaseUri;
+        products=await http.GetFromJsonAsync<List<Product>>("api/User/GetProduct");
+    }
+
+    void GetProductById(Guid id)
+    {
+        NavigationManager.NavigateTo($"GetProductById/{id}");
+    }
+
+    
+}

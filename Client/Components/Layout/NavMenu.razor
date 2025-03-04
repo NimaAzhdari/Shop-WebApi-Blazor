@@ -1,0 +1,40 @@
+﻿@inject HttpClient http
+
+<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+    </div>
+</div>
+
+<div >
+    <nav class="flex-column">
+        @if(data !=null)
+        {
+        @foreach(var d in data)
+        {
+            <Radzen.Blazor.RadzenPanelMenuItem Path="@d.Href" Text="@d.Name" Icon="dashboard">
+            </Radzen.Blazor.RadzenPanelMenuItem>  
+        }
+        }
+    </nav>
+</div>
+@code
+{
+    private bool collapseNavMenu = true;
+    private NavBar[]? data;
+
+    protected override async Task OnInitializedAsync()
+    {
+       try
+       {
+            data=await http.GetFromJsonAsync<NavBar[]>("api/Layout/NavbarData");
+       }
+       catch(Exception e)
+       {
+        Console.WriteLine($"Error fetching data: {e.Message}");
+       }
+    }
+
+}
+
+
+

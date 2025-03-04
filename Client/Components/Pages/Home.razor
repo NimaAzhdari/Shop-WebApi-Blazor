@@ -1,0 +1,31 @@
+﻿@page "/"
+@using Radzen
+@using Radzen.Blazor
+@inject HttpClient http
+
+<RadzenCarousel Style="height: 400px; max-width: 600px;" class="rz-mx-auto" AllowNavigation="true" ButtonStyle="ButtonStyle.Base" ButtonSize="ButtonSize.Large" ButtonVariant="Variant.Text">
+    <Items>
+        <RadzenCarouselItem>
+
+        </RadzenCarouselItem>
+
+        <RadzenCarouselItem>
+            
+        </RadzenCarouselItem>
+
+        <RadzenCarouselItem>
+            
+        </RadzenCarouselItem>
+    </Items>
+</RadzenCarousel>
+
+
+@code
+{
+
+ protected override async Task OnInitializedAsync()
+ {
+    await http.GetAsync("/api/Home/SlideBarImage");
+ }
+
+}

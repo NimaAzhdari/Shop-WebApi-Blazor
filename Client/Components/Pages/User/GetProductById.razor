@@ -1,0 +1,96 @@
+@page "/GetProductById/{Id:guid}"
+@using Radzen
+@using Radzen.Blazor
+@inject HttpClient http
+@inject NavigationManager NavigationManager
+@inject DialogService DialogService
+
+
+<RadzenCard>
+
+    <RadzenStack>
+        <RadzenImage Path="@($"{baseUrl}{product.ImageURL}")" Style="width: 100px; height: 100px; border-radius: 50%;"  ></RadzenImage>
+    </RadzenStack>
+
+    <RadzenCard>
+
+        <RadzenText></RadzenText>
+
+        <RadzenRow>
+
+            <RadzenColumn>
+                <RadzenText>نام محصول</RadzenText>
+                <RadzenText>@(product.Name)</RadzenText>
+                <RadzenText>توضیحات</RadzenText>
+                <RadzenText>@(product.Description)</RadzenText>
+            </RadzenColumn>
+            
+            <RadzenColumn>
+                 <RadzenText>قیمت</RadzenText>
+                <RadzenText>@(product.Price)</RadzenText>
+                <RadzenTemplateForm Data="@(_Quantity)">
+                    <RadzenFormField>
+                        <RadzenLabel Text="تعداد" Component="Quantity"></RadzenLabel>
+                        <RadzenNumeric @bind-Value="@(_Quantity)" Name="Quantity"></RadzenNumeric>
+                    </RadzenFormField>
+                </RadzenTemplateForm>
+            </RadzenColumn>
+
+        </RadzenRow>
+
+    </RadzenCard>
+
+    <RadzenStack>
+        <RadzenButton Click="HandleSubmit" Text="افزودن به سبد خرید"></RadzenButton>
+    </RadzenStack>
+
+</RadzenCard>
+
+
+
+
+
+@code
+{
+    [Parameter]
+    public Guid Id{get;set;}
+
+    Product product=new();
+
+    private string baseUrl{get;set;}
+
+    int _Quantity {get;set;}
+
+protected override async Task OnInitializedAsync()
+    {
+         baseUrl = NavigationManager.BaseUri;
+         product =await http.GetFromJsonAsync<Product>($"api/User/GetProductById/{Id}");
+    }
+
+    async Task HandleSubmit()
+    {
+    Basket basket=new Basket
+    {
+        Items=new List<OrderItem>{(new OrderItem{ProductId=product.Id,Price=product.Price,Quantity=_Quantity,Name=product.Name,ImageUrl=product.ImageURL})}
+    };
+
+    try
+    {
+        var response=await http.PostAsJsonAsync<Basket>("api/User/ManageBasketCookie",basket);
+        if(response.IsSuccessStatusCode)
+        {
+            await DialogService.OpenAsync(
+                "پیام",
+                ds => @<div>
+                    <h4> انجام شد</h4>
+                </div>,
+                 new DialogOptions { Width = "400px", Height = "200px" }
+                );
+        }
+    }
+    catch(Exception e)
+    {
+        Console.WriteLine(e.Message);
+    }
+    }
+}

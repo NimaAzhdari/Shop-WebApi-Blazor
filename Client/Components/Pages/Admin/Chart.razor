@@ -1,0 +1,24 @@
+@page "/Chart"
+@inject HttpClient http
+@using Radzen
+@using Radzen.Blazor
+
+
+
+<div class="rz-p-0 rz-p-md-12">
+    <RadzenChart >
+        <RadzenColumnSeries Data="@datas" CategoryProperty="X" ValueProperty="Y"/>
+        <RadzenValueAxis Min="0" Max="400" Step="50"/>
+
+    </RadzenChart>
+</div>
+
+
+@code
+{
+    List<ChartData> datas=new();
+    protected override async Task OnInitializedAsync()
+    {
+         datas=await http.GetFromJsonAsync<List<ChartData>>("api/Admin/ChartData");
+    }
+}

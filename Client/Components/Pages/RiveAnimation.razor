@@ -1,0 +1,60 @@
+@page "/rive"
+@inject IJSRuntime JSRuntime
+
+<div>
+    <canvas id="riveCanvas" width="400" height="400"></canvas>
+</div>
+
+<script>
+   function loadRiveAnimation(canvasId, animationPath) {
+        if (typeof rive === "undefined") {
+            console.error("Rive library is not loaded. Make sure you included it in your index.html.");
+            return;
+        }
+
+        const canvas = document.getElementById(canvasId);
+        if (!canvas) {
+            console.error(`Canvas with ID '${canvasId}' not found.`);
+            return;
+        }
+
+        const riveInstance = new rive.Rive({
+            src: animationPath,
+            canvas: canvas,
+            autoplay: true,
+            stateMachines: ["State Machine 1"], // Replace with your actual state machine name
+            onLoad: () => {
+                console.log("Rive animation loaded successfully.");
+                const inputs = riveInstance.stateMachineInputs("State Machine 1");
+
+                const cursorOutInput = inputs.find(input => input.name === "cursorOut");
+                if (cursorOutInput) {
+                    canvas.addEventListener("mouseenter", () => {
+                        cursorOutInput.value = false; // Hovering (cursor in)
+                        console.log("Mouse entered: cursorOut set to false.");
+                    });
+
+                    canvas.addEventListener("mouseleave", () => {
+                        cursorOutInput.value = true; // Not hovering (cursor out)
+                        console.log("Mouse left: cursorOut set to true.");
+                    });
+                } else {
+                    console.error("Input 'cursorOut' not found in the state machine.");
+                }
+            },
+        });
+    }
+</script>
+
+@code {
+    private string CanvasId { get; set; } = "riveCanvas";
+    private string AnimationPath { get; set; } = "animations/my_animation.riv";
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JSRuntime.InvokeVoidAsync("loadRiveAnimation", CanvasId, AnimationPath);
+        }
+    }
+}

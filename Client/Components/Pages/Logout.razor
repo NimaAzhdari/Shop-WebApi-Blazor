@@ -1,0 +1,28 @@
+@page "/Logout"
+@using Radzen
+@inject HttpClient http
+@inject NavigationManager NavigationManager
+@inject DialogService DialogService
+
+
+
+@code
+{
+     protected override async Task OnInitializedAsync()
+    {
+        
+        var response=await http.PostAsync("/api/Account/logout",null);
+       if (response.IsSuccessStatusCode)
+        {
+            await DialogService.OpenAsync(
+                "پیام",
+                ds => @<div>
+                    <h4> انجام شد</h4>
+                </div>,
+                 new DialogOptions { Width = "400px", Height = "200px" }
+                );
+            
+            NavigationManager.NavigateTo("/",true);
+        }
+    }
+}

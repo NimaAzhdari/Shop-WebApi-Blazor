@@ -1,0 +1,88 @@
+@page "/Orders"
+@using Radzen
+@using Radzen.Blazor
+@inject HttpClient http
+@inject NavigationManager NavigationManager
+@inject DialogService DialogService
+
+
+
+<RadzenDataList Data="@orders" TItem="OrderItem">
+ <Template Context="item">
+    <RadzenCard>
+
+                <RadzenRow>
+                    <RadzenColumn>
+                        <RadzenImage Path="@($"{baseUrl}{item.ImageUrl}")"></RadzenImage>
+                    </RadzenColumn>
+
+                    <RadzenColumn>
+                            <RadzenText>نام محصول</RadzenText>
+                            <RadzenText>@item.Name</RadzenText>
+                    </RadzenColumn>
+
+                    <RadzenColumn>
+                            <RadzenText>تعداد</RadzenText>
+                            <RadzenText>@item.Quantity</RadzenText>
+                    </RadzenColumn>
+
+                    <RadzenColumn>
+                            <RadzenText>قیمت</RadzenText>
+                            <RadzenText>@item.Price</RadzenText>
+                    </RadzenColumn>
+
+                     <RadzenColumn>
+                            <RadzenText>مجموع</RadzenText>
+                            <RadzenText>@item.TotalValue</RadzenText>
+                    </RadzenColumn>
+
+                </RadzenRow>
+            </RadzenCard>
+</Template> 
+</RadzenDataList>
+
+<RadzenCard>
+    <RadzenRow>
+        <RadzenColumn>
+            <RadzenText>جمع کل</RadzenText>
+            <RadzenText>@(orders?.Sum(x=>x.TotalValue) ?? 0)</RadzenText>
+        </RadzenColumn>
+
+        <RadzenColumn>
+            <RadzenButton Click="HandleSubmit" Text="خرید"></RadzenButton>
+        </RadzenColumn>
+    </RadzenRow>
+</RadzenCard>
+@code
+{
+    Basket basket=new();
+    List<OrderItem> orders=new();
+
+    private string baseUrl{get;set;}
+
+protected override async Task OnInitializedAsync()
+    {
+        baseUrl = NavigationManager.BaseUri;
+        basket= await http.GetFromJsonAsync<Basket>("api/User/GetBasket");
+         if(basket != null)
+            {   
+            orders=basket.Items;
+            }
+    }
+async Task HandleSubmit()
+{
+    var response=await http.PostAsJsonAsync<Basket>("api/User/SubmitBuy",basket);
+        if(response.IsSuccessStatusCode)
+        {
+            await DialogService.OpenAsync(
+                "پیام",
+                ds => @<div>
+                    <h4> انجام شد</h4>
+                </div>,
+                 new DialogOptions { Width = "400px", Height = "200px" }
+                );
+        }
+
+}
+
+}

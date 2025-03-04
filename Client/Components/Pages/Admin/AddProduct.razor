@@ -1,0 +1,90 @@
+@page "/AddProduct"
+@using Radzen
+@using Radzen.Blazor
+@inject HttpClient http
+@using System.Text.Json
+@using System.Text
+@inject DialogService DialogService
+
+
+<RadzenTemplateForm Data="@product" TItem="ProductDto" Submit="@HandleSubmit">
+    <RadzenFormField>
+        <RadzenLabel Text="نام محصول" Component="Name"></RadzenLabel>
+        <RadzenTextBox @bind-Value="@product.Name" Name="Name" ></RadzenTextBox>
+        <RadzenRequiredValidator Component="Name"></RadzenRequiredValidator>
+    </RadzenFormField>
+
+    <RadzenFormField>
+        <RadzenLabel Text="توضیحات" Component="Description"></RadzenLabel>
+        <RadzenTextBox @bind-Value="@product.Description" Name="Description" ></RadzenTextBox>
+        <RadzenRequiredValidator Component="Description"></RadzenRequiredValidator>
+    </RadzenFormField>
+
+    <RadzenFormField>
+        <RadzenLabel Text="قیمت" Component="Price"></RadzenLabel>
+        <RadzenNumeric @bind-Value="@product.Price" Name="Price" ></RadzenNumeric>
+        <RadzenRequiredValidator Component="Price"></RadzenRequiredValidator>
+    </RadzenFormField>
+
+     <RadzenFormField>
+        <RadzenLabel Text="موجودی" Component="Stock"></RadzenLabel>
+        <RadzenNumeric @bind-Value="@product.Stock" Name="Stock" ></RadzenNumeric>
+        <RadzenRequiredValidator Component="Stock"></RadzenRequiredValidator>
+    </RadzenFormField>
+
+     <RadzenFormField>
+        <RadzenLabel Text="عکس کالا" ></RadzenLabel>
+        <InputFile OnChange="HandleFileUpload" />
+    </RadzenFormField>
+
+    <RadzenButton ButtonType="ButtonType.Submit" Text="ارسال" Icon="save"></RadzenButton>
+
+</RadzenTemplateForm>
+
+
+@code
+{
+  ProductDto product=new ProductDto();//for send product data to server
+  byte[]? uploadedFile;
+   string uploadedFileName;
+  async Task HandleFileUpload(InputFileChangeEventArgs args)
+  {
+    Console.WriteLine("Form submitted2");
+        
+        var file = args.File;
+        uploadedFileName = file.Name;
+
+        using var memoryStream = new MemoryStream();
+        await file.OpenReadStream().CopyToAsync(memoryStream);
+        uploadedFile = memoryStream.ToArray();
+  }
+  async Task HandleSubmit()
+  {
+    Console.WriteLine("Form submitted");
+    var JsonProductDto=JsonSerializer.Serialize(product);
+
+    using var content = new MultipartFormDataContent();
+    content.Add(new ByteArrayContent(uploadedFile),"File",uploadedFileName);
+    content.Add(new StringContent(JsonProductDto, Encoding.UTF8, "application/json"),"ProductJson");
+    
+    var response=await http.PostAsync("api/Admin/CreateProduct",content);
+    if(response.IsSuccessStatusCode)
+    {
+        await DialogService.OpenAsync(
+                "پیام",
+                ds => @<div>
+                    <h4> انجام شد</h4>
+                </div>,
+                 new DialogOptions { Width = "400px", Height = "200px" }
+                );await DialogService.OpenAsync(
+                "پیام",
+                ds => @<div>
+                    <h4> انجام شد</h4>
+                </div>,
+                 new DialogOptions { Width = "400px", Height = "200px" }
+                );
+    }
+  
+  
+  }
+}
